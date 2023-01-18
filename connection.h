@@ -3,12 +3,17 @@
 #include <QTcpSocket>
 #include <QtWidgets>
 
-class MyConnection : public QTcpSocket {
+class MyConnection : QObject
+{
     Q_OBJECT
 
 public:
     MyConnection();
 
 public slots:
-    void startConnection(QLineEdit *ipLE, QLineEdit *portLE);
+    void startConnection(QLineEdit *ipLE,
+                         QLineEdit *portLE,
+                         QLabel *connectionStatus,
+                         QTextEdit *log);
+    void connectionState();
 };
