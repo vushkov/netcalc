@@ -1,11 +1,14 @@
 #include "connection.h"
 #include "timestamp.h"
+#include "widget.h"
+#include <QLineEdit>
 #include <QTcpSocket>
 #include <QtWidgets>
 
 QTcpSocket *newSocket;
 QLabel *statusLabel;
 QTextEdit *logTextEdit;
+//extern QLineEdit *result;
 QString ip;
 
 MyConnection::MyConnection() {}
@@ -51,3 +54,33 @@ void MyConnection::connectionState()
     statusLabel->setText("Connected");
     statusLabel->setStyleSheet("QLabel{color:green;}");
 };
+
+void MyConnection::sendData(QLineEdit *result)
+{
+    if (newSocket && result->text() != "") {
+
+        QString data = result->text();
+        const char *charData = data.toStdString().c_str();
+        newSocket->write(charData);
+
+        logTextEdit->insertPlainText(getTimeStamp() + " > Send data: " + data + "\n");
+
+        newSocket->waitForBytesWritten(5000);
+        newSocket->waitForReadyRead(5000);
+        newSocket->bytesAvailable();
+
+        QObject::connect(newSocket, &QTcpSocket::readyRead, [=] { this->readyRead(result); });
+    }
+}
+
+void MyConnection::readyRead(QLineEdit *result)
+{
+    if (result->text() != "") {
+
+        QString recievedData = newSocket->readAll();
+        result->setText(recievedData);
+
+        QString logString = getTimeStamp() + " > Server result: " + recievedData + "\n";
+        logTextEdit->insertPlainText(logString);
+    }
+}

@@ -142,6 +142,7 @@ void Widget::makeWidget()
     QObject::connect(buttonMinus, &QPushButton::clicked, [=] { result->insert(QString("-")); });
     QObject::connect(buttonMult, &QPushButton::clicked, [=] { result->insert(QString("*")); });
     QObject::connect(buttonDivid, &QPushButton::clicked, [=] { result->insert(QString("/")); });
+    QObject::connect(buttonEqual, &QPushButton::clicked, [=] { myConnObj->sendData(result); });
 
     // Подключаемся к серверу по нажатию кнопки
     QObject::connect(buttonConnect, &QPushButton::clicked, [=] {

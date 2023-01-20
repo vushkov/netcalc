@@ -2,6 +2,7 @@
 #define WIDGET_H
 
 #include <QWidget>
+#include <QLineEdit>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -20,6 +21,7 @@ public:
 
 public:
     Ui::Widget *ui;
+
 };
 
 #endif // WIDGET_H

@@ -16,4 +16,6 @@ public slots:
                          QLabel *connectionStatus,
                          QTextEdit *log);
     void connectionState();
+    void sendData(QLineEdit *result);
+    void readyRead(QLineEdit *result);
 };
