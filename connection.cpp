@@ -53,21 +53,16 @@ void MyConnection::connectionState()
     // Меняем текст и цвет текста статус-лейбла при успешном подключении
     statusLabel->setText("Connected");
     statusLabel->setStyleSheet("QLabel{color:green;}");
-};
+}
 
 void MyConnection::sendData(QLineEdit *result)
 {
     if (newSocket && result->text() != "") {
-
         QString data = result->text();
         const char *charData = data.toStdString().c_str();
         newSocket->write(charData);
 
         logTextEdit->insertPlainText(getTimeStamp() + " > Send data: " + data + "\n");
-
-        newSocket->waitForBytesWritten(5000);
-        newSocket->waitForReadyRead(5000);
-        newSocket->bytesAvailable();
 
         QObject::connect(newSocket, &QTcpSocket::readyRead, [=] { this->readyRead(result); });
     }
@@ -75,9 +70,10 @@ void MyConnection::sendData(QLineEdit *result)
 
 void MyConnection::readyRead(QLineEdit *result)
 {
-    if (result->text() != "") {
+    QString recievedData = newSocket->readAll();
 
-        QString recievedData = newSocket->readAll();
+    // Делаем проверку на пустые данные
+    if (recievedData != "") {
         result->setText(recievedData);
 
         QString logString = getTimeStamp() + " > Server result: " + recievedData + "\n";
