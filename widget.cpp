@@ -38,9 +38,11 @@ void Widget::makeWidget()
 
     // Поля для ввода сетевых реквизитов, и кнопка для установки соединения
     QLineEdit *ipLineEdit = new QLineEdit();
-    ipLineEdit->setText("172.27.10.95");
+    ipLineEdit->setText("127.0.0.1");
+
     QLineEdit *portLineEdit = new QLineEdit();
     portLineEdit->setText("12345");
+
     QPushButton *buttonConnect = new QPushButton("Connect");
 
     // Добавляем поля сетевых реквизитов и кнопку в соответствующий Layout
@@ -55,11 +57,11 @@ void Widget::makeWidget()
 
 #define resultGUIstart {
     // Поле для выведения результата вычисления
-    QLineEdit *result = new QLineEdit;
-    result->setReadOnly(true);
+    QLineEdit *resultLineEdit = new QLineEdit;
+    resultLineEdit->setReadOnly(true);
 
     // Добавляем поле результата в общий вертикальный Layout
-    vertLayout->addWidget(result);
+    vertLayout->addWidget(resultLineEdit);
 
 #define resultGUIend }
 
@@ -73,8 +75,6 @@ void Widget::makeWidget()
     QPushButton *button3 = new QPushButton("3");
     QPushButton *button4 = new QPushButton("4");
     QPushButton *button5 = new QPushButton("5");
-
-    //MyPushButton *button5 = new MyPushButton('5');
     QPushButton *button6 = new QPushButton("6");
     QPushButton *button7 = new QPushButton("7");
     QPushButton *button8 = new QPushButton("8");
@@ -112,49 +112,48 @@ void Widget::makeWidget()
 
 #define logGUIstart {
     // Поле для получения лога от сервера
-    QTextEdit *log = new QTextEdit;
-    log->setReadOnly(true);
+    QTextEdit *logTextEdit = new QTextEdit;
+    logTextEdit->setReadOnly(true);
 
     // Добавляем поле лога в общий вертикальный Layout
-    vertLayout->addWidget(log);
+    vertLayout->addWidget(logTextEdit);
 
 #define logGUIend }
 
-#define socketStart {
-    MyConnection *myConnObj = new MyConnection();
-
-#define socketEnd }
-
 #define connectSignalSlotStart {
-    QObject::connect(buttonClear, SIGNAL(clicked()), result, SLOT(clear()));
+    QObject::connect(buttonClear, SIGNAL(clicked()), resultLineEdit, SLOT(clear()));
 
-    QObject::connect(button0, &QPushButton::clicked, [=] { result->insert(QString("0")); });
-    QObject::connect(button1, &QPushButton::clicked, [=] { result->insert(QString("1")); });
-    QObject::connect(button2, &QPushButton::clicked, [=] { result->insert(QString("2")); });
-    QObject::connect(button3, &QPushButton::clicked, [=] { result->insert(QString("3")); });
-    QObject::connect(button4, &QPushButton::clicked, [=] { result->insert(QString("4")); });
-    QObject::connect(button5, &QPushButton::clicked, [=] { result->insert(QString("5")); });
-    QObject::connect(button6, &QPushButton::clicked, [=] { result->insert(QString("6")); });
-    QObject::connect(button7, &QPushButton::clicked, [=] { result->insert(QString("7")); });
-    QObject::connect(button8, &QPushButton::clicked, [=] { result->insert(QString("8")); });
-    QObject::connect(button9, &QPushButton::clicked, [=] { result->insert(QString("9")); });
-    QObject::connect(buttonPlus, &QPushButton::clicked, [=] { result->insert(QString("+")); });
-    QObject::connect(buttonMinus, &QPushButton::clicked, [=] { result->insert(QString("-")); });
-    QObject::connect(buttonMult, &QPushButton::clicked, [=] { result->insert(QString("*")); });
-    QObject::connect(buttonDivid, &QPushButton::clicked, [=] { result->insert(QString("/")); });
-    QObject::connect(buttonEqual, &QPushButton::clicked, [=] { myConnObj->sendData(result); });
-
-    // Подключаемся к серверу по нажатию кнопки
-    QObject::connect(buttonConnect, &QPushButton::clicked, [=] {
-        myConnObj->startConnection(ipLineEdit, portLineEdit, connectionStatus, log);
-    });
-
-    //    QObject::connect(buttonConnect, &QPushButton::clicked, [=]{
-    //        connectionStatus->setText("Connected");
-    //        connectionStatus->setStyleSheet("QLabel{color:green;}");
-    //    });
+    QObject::connect(button0, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("0")); });
+    QObject::connect(button1, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("1")); });
+    QObject::connect(button2, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("2")); });
+    QObject::connect(button3, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("3")); });
+    QObject::connect(button4, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("4")); });
+    QObject::connect(button5, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("5")); });
+    QObject::connect(button6, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("6")); });
+    QObject::connect(button7, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("7")); });
+    QObject::connect(button8, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("8")); });
+    QObject::connect(button9, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("9")); });
+    QObject::connect(buttonPlus, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("+")); });
+    QObject::connect(buttonMinus, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("-")); });
+    QObject::connect(buttonMult, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("*")); });
+    QObject::connect(buttonDivid, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("/")); });
 
 #define connectSignalSlotEnd }
+
+#define connectStart {
+    // Создаем объект класса MyConnection
+    MyConnection *myConnObj = new MyConnection();
+
+    // Подключаемся к серверу по нажатию кнопки
+    QObject::connect(buttonConnect, &QPushButton::clicked, [=] { myConnObj->startConnection(ipLineEdit, portLineEdit, connectionStatus, logTextEdit); });
+
+#define connectEnd }
+
+#define sendDataStart {
+    // Отправляем выражение на сервер
+    QObject::connect(buttonEqual, &QPushButton::clicked, [=] { myConnObj->sendData(resultLineEdit); });
+
+#define sendDataEnd }
 }
 
 Widget::~Widget()

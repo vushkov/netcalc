@@ -11,11 +11,11 @@ public:
     MyConnection();
 
 public slots:
-    void startConnection(QLineEdit *ipLE,
-                         QLineEdit *portLE,
-                         QLabel *connectionStatus,
-                         QTextEdit *log);
-    void connectionState();
+    void startConnection(QLineEdit *ipLE, QLineEdit *portLE, QLabel *connectionSL, QTextEdit *logTE);
     void sendData(QLineEdit *result);
+
+private slots:
+    void connectedState();
     void readyRead(QLineEdit *result);
+    void disconnectedState();
 };
