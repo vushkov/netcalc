@@ -1,8 +1,18 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include <QWidget>
+#include <QLabel>
 #include <QLineEdit>
+#include <QPushButton>
+#include <QTextEdit>
+
+extern QLineEdit *ipLineEdit;
+extern QLineEdit *portLineEdit;
+extern QLineEdit *resultLineEdit;
+extern QLabel *connectionStatus;
+extern QPushButton *buttonConnect;
+extern QPushButton *buttonEqual;
+extern QTextEdit *logTextEdit;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,7 +31,6 @@ public:
 
 public:
     Ui::Widget *ui;
-
 };
 
 #endif // WIDGET_H

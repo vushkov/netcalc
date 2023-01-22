@@ -2,6 +2,14 @@
 #include "connection.h"
 #include "ui_widget.h"
 
+QLineEdit *ipLineEdit;
+QLineEdit *portLineEdit;
+QLabel *connectionStatus;
+QLineEdit *resultLineEdit;
+QPushButton *buttonConnect;
+QPushButton *buttonEqual;
+QTextEdit *logTextEdit;
+
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
@@ -23,7 +31,7 @@ void Widget::makeWidget()
 
 #define statusGUIstart {
     // Поле статуса соединения
-    QLabel *connectionStatus = new QLabel();
+    connectionStatus = new QLabel();
     connectionStatus->setText("Disconnected");
     connectionStatus->setStyleSheet("QLabel{color:red;}");
 
@@ -33,17 +41,17 @@ void Widget::makeWidget()
 #define statusGUIend }
 
 #define connectionGUIstart {
-    // Горизонтальный Layout для полей ip и port
+    // Горизонтальный Layout для полей ip, port и кнопки соединения
     QHBoxLayout *connectLayout = new QHBoxLayout();
 
     // Поля для ввода сетевых реквизитов, и кнопка для установки соединения
-    QLineEdit *ipLineEdit = new QLineEdit();
+    ipLineEdit = new QLineEdit();
     ipLineEdit->setText("127.0.0.1");
 
-    QLineEdit *portLineEdit = new QLineEdit();
+    portLineEdit = new QLineEdit();
     portLineEdit->setText("12345");
 
-    QPushButton *buttonConnect = new QPushButton("Connect");
+    buttonConnect = new QPushButton("Connect");
 
     // Добавляем поля сетевых реквизитов и кнопку в соответствующий Layout
     connectLayout->addWidget(ipLineEdit);
@@ -57,8 +65,9 @@ void Widget::makeWidget()
 
 #define resultGUIstart {
     // Поле для выведения результата вычисления
-    QLineEdit *resultLineEdit = new QLineEdit;
+    resultLineEdit = new QLineEdit;
     resultLineEdit->setReadOnly(true);
+    resultLineEdit->setDisabled(true);
 
     // Добавляем поле результата в общий вертикальный Layout
     vertLayout->addWidget(resultLineEdit);
@@ -84,8 +93,9 @@ void Widget::makeWidget()
     QPushButton *buttonPlus = new QPushButton("+");
     QPushButton *buttonMult = new QPushButton("*");
     QPushButton *buttonDivid = new QPushButton("/");
-    QPushButton *buttonEqual = new QPushButton("=");
     QPushButton *buttonClear = new QPushButton("C");
+    buttonEqual = new QPushButton("=");
+    buttonEqual->setDisabled(true);
 
     // Добавляем кнопки в табличный Layout
     grid->addWidget(button1, 3, 0);
@@ -112,7 +122,7 @@ void Widget::makeWidget()
 
 #define logGUIstart {
     // Поле для получения лога от сервера
-    QTextEdit *logTextEdit = new QTextEdit;
+    logTextEdit = new QTextEdit;
     logTextEdit->setReadOnly(true);
 
     // Добавляем поле лога в общий вертикальный Layout
@@ -122,7 +132,6 @@ void Widget::makeWidget()
 
 #define connectSignalSlotStart {
     QObject::connect(buttonClear, SIGNAL(clicked()), resultLineEdit, SLOT(clear()));
-
     QObject::connect(button0, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("0")); });
     QObject::connect(button1, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("1")); });
     QObject::connect(button2, &QPushButton::clicked, [=] { resultLineEdit->insert(QString("2")); });
@@ -144,14 +153,14 @@ void Widget::makeWidget()
     // Создаем объект класса MyConnection
     MyConnection *myConnObj = new MyConnection();
 
-    // Подключаемся к серверу по нажатию кнопки
-    QObject::connect(buttonConnect, &QPushButton::clicked, [=] { myConnObj->startConnection(ipLineEdit, portLineEdit, connectionStatus, logTextEdit); });
+    // Определяем поведение кнопки - подключение к серверу
+    QObject::connect(buttonConnect, &QPushButton::clicked, [=] { myConnObj->startConnection(); });
 
 #define connectEnd }
 
 #define sendDataStart {
-    // Отправляем выражение на сервер
-    QObject::connect(buttonEqual, &QPushButton::clicked, [=] { myConnObj->sendData(resultLineEdit); });
+    // Определяем поведение кнопки - отправка данных на сервер
+    QObject::connect(buttonEqual, &QPushButton::clicked, [=] { myConnObj->sendData(); });
 
 #define sendDataEnd }
 }

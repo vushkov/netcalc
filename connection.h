@@ -2,6 +2,15 @@
 
 #include <QTcpSocket>
 #include <QtWidgets>
+#include "widget.h"
+
+//QLineEdit *ipLineEdit;
+//QLineEdit *portLineEdit;
+//QLabel *connectionStatus;
+//QLineEdit *resultLineEdit;
+//QPushButton *buttonConnect;
+//QTextEdit *logTextEdit;
+//QPushButton *buttonEqual;
 
 class MyConnection : QObject
 {
@@ -11,11 +20,10 @@ public:
     MyConnection();
 
 public slots:
-    void startConnection(QLineEdit *ipLE, QLineEdit *portLE, QLabel *connectionSL, QTextEdit *logTE);
-    void sendData(QLineEdit *result);
-
-private slots:
-    void connectedState();
-    void readyRead(QLineEdit *result);
+    void startConnection();
+    void sendData();
     void disconnectedState();
+    void readyRead();
+    void connectedState();
+
 };
