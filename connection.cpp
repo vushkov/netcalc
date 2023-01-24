@@ -60,10 +60,12 @@ void MyConnection::sendData()
         if (newSocket && newSocket->state() == QAbstractSocket::ConnectedState) {
             // Получаем введенное пользователем выражение
             QString data = resultLineEdit->text();
-            const char *charData = data.toStdString().c_str();
+
+            // Добавляем к данным символ \n, чтобы обозначить конец данных
+            QByteArray byteArrayData = data.toUtf8().append('\n');
 
             // Записываем выражение в сокет
-            newSocket->write(charData);
+            newSocket->write(byteArrayData);
 
             // Пишем в поле лога какое выражение было отправлено на сервер
             logTextEdit->insertPlainText(getTimeStamp() + " > Sent data: " + data + "\n");
