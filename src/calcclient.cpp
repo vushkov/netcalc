@@ -1,6 +1,6 @@
-#include "connection.h"
+#include "calcclient.h"
 #include "timestamp.h"
-#include "widget.h"
+#include "calcwidget.h"
 #include <QTcpSocket>
 #include <QtWidgets>
 

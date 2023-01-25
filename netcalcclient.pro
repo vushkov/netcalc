@@ -10,18 +10,18 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    connection.cpp \
-    main.cpp \
-    timestamp.cpp \
-    widget.cpp
+    src/calcclient.cpp \
+    src/calcwidget.cpp \
+    src/main.cpp \
+    src/timestamp.cpp \
 
 HEADERS += \
-    connection.h \
-    timestamp.h \
-    widget.h
+    include/calcclient.h \
+    include/calcwidget.h \
+    include/timestamp.h \
 
 FORMS += \
-    widget.ui
+    ui/widget.ui \
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -1,5 +1,5 @@
-#include "widget.h"
-#include "connection.h"
+#include "calcwidget.h"
+#include "calcclient.h"
 #include "ui_widget.h"
 
 QLineEdit *ipLineEdit;

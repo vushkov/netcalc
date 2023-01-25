@@ -1,5 +1,5 @@
-#ifndef WIDGET_H
-#define WIDGET_H
+#ifndef CALCWIDGET_H
+#define CALCWIDGET_H
 
 #include <QLabel>
 #include <QLineEdit>
@@ -33,4 +33,4 @@ public:
     Ui::Widget *ui;
 };
 
-#endif // WIDGET_H
+#endif // CALCWIDGET_H

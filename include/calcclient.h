@@ -2,15 +2,7 @@
 
 #include <QTcpSocket>
 #include <QtWidgets>
-#include "widget.h"
-
-//QLineEdit *ipLineEdit;
-//QLineEdit *portLineEdit;
-//QLabel *connectionStatus;
-//QLineEdit *resultLineEdit;
-//QPushButton *buttonConnect;
-//QTextEdit *logTextEdit;
-//QPushButton *buttonEqual;
+#include "calcwidget.h"
 
 class MyConnection : QObject
 {
