@@ -7,7 +7,7 @@
 QTcpSocket *newSocket;
 QString ip;
 
-MyConnection::MyConnection() {}
+MyConnection::MyConnection() : nextBlockSize(0) {}
 
 void MyConnection::startConnection()
 {
@@ -62,14 +62,12 @@ void MyConnection::sendData()
     out.device()->seek(0);
     out << quint16(arrBlock.size() - sizeof(quint16));
 
-
     newSocket->write(arrBlock);
-   // logTextEdit->setText("");
 
+    QObject::connect(newSocket, &QTcpSocket::readyRead, [=] { this->readyRead(); });
+    // logTextEdit->setText("");
 
-
-
-   /* // Если поле ввода пустое, то вообще ничего не делаем
+    /* // Если поле ввода пустое, то вообще ничего не делаем
     if (resultLineEdit->text() != "") {
         // Если сокет существует и статус сокета "Подключен", то отправляем это выражение на сервер
         if (newSocket && newSocket->state() == QAbstractSocket::ConnectedState) {
@@ -99,27 +97,32 @@ void MyConnection::sendData()
 void MyConnection::readyRead()
 {
     QDataStream in(newSocket);
+    qDebug().noquote().nospace() << getTimeStamp() << "bytesAvailable = " << newSocket->bytesAvailable() << " nextBlockSize = " << nextBlockSize;
+
+    // QByteArray ggg = newSocket->readAll();
     in.setVersion(QDataStream::Qt_5_12);
     for (;;) {
+        qDebug().noquote().nospace() << getTimeStamp() << "bytesAvailable = " << newSocket->bytesAvailable() << " nextBlockSize = " << nextBlockSize;
         if (!nextBlockSize) {
             if (newSocket->bytesAvailable() < sizeof(quint16)) {
                 break;
             }
+            qDebug().noquote().nospace() << getTimeStamp() << "bytesAvailable = " << newSocket->bytesAvailable() << " nextBlockSize = " << nextBlockSize;
             in >> nextBlockSize;
+            qDebug().noquote().nospace() << getTimeStamp() << "bytesAvailable = " << newSocket->bytesAvailable() << " nextBlockSize = " << nextBlockSize;
         }
-
         if (newSocket->bytesAvailable() < nextBlockSize) {
             break;
         }
+
+        qDebug().noquote().nospace() << getTimeStamp() << "bytesAvailable = " << newSocket->bytesAvailable() << " nextBlockSize = " << nextBlockSize;
+        QTime time;
+        QString str;
+        in >> time >> str;
+
+        qDebug().noquote().nospace() << getTimeStamp() << str;
+        nextBlockSize = 0;
     }
-
-    QTime time;
-    QString str;
-    in >> time >> str;
-
-    qDebug().noquote().nospace() << getTimeStamp() << str;
-    nextBlockSize = 0;
-
 
     /*
     // Вычитываем из сокета данные, полученные от сервера
