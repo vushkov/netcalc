@@ -10,7 +10,6 @@ class MyConnection : QObject
 
 private:
     //QTcpSocket *socket;
-    quint16 nextBlockSize;
 
 public:
     MyConnection();
