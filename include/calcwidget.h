@@ -1,18 +1,11 @@
 #ifndef CALCWIDGET_H
 #define CALCWIDGET_H
 
-#include <QLabel>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QTextEdit>
-
-extern QLineEdit *ipLineEdit;
-extern QLineEdit *portLineEdit;
-extern QLineEdit *resultLineEdit;
-extern QLabel *connectionStatus;
-extern QPushButton *buttonConnect;
-extern QPushButton *buttonEqual;
-extern QTextEdit *logTextEdit;
+#include "timestamp.h"
+#include <QTcpSocket>
+#include <QWidget>
+#include <QString>
+#include <QSignalMapper>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -20,14 +13,24 @@ class Widget;
 }
 QT_END_NAMESPACE
 
-class Widget : public QWidget
+class CalcWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    Widget(QWidget *parent = nullptr);
-    ~Widget();
-    void makeWidget();
+    CalcWidget(QWidget *parent = nullptr);
+    ~CalcWidget();
+
+public slots:
+    void startConnection();
+    void sendData();
+    void disconnectedState();
+    void readyRead();
+    void connectedState();
+
+private:
+    QString ip;
+    //QTcpSocket *newSocket;
 
 public:
     Ui::Widget *ui;

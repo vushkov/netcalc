@@ -12,13 +12,11 @@ CONFIG += c++11
 INCLUDEPATH += include/
 
 SOURCES += \
-    src/calcclient.cpp \
     src/calcwidget.cpp \
     src/main.cpp \
     src/timestamp.cpp \
 
 HEADERS += \
-    include/calcclient.h \
     include/calcwidget.h \
     include/timestamp.h \
 
