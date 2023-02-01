@@ -14,6 +14,7 @@ CalcWidget::CalcWidget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     for (int i = 0; i < gridLayoutChild; i++) {
         QPushButton *pButton = qobject_cast<QPushButton *>(ui->gridLayout->itemAt(i)->widget());
 
+        // Исключаем кнопку "=" и кнопку "С"
         if (pButton->text() != 'C' && pButton->text() != '=') {
             connect(pButton, &QPushButton::clicked, [=] { ui->resultLineEdit->insert(QString(pButton->text())); });
         }
@@ -32,29 +33,24 @@ CalcWidget::~CalcWidget()
 
 void CalcWidget::startConnection()
 {
-    // Проверка есть ли уже созданный сокет или сокет есть, но он не подключен
-    //if (!newSocket || (newSocket && newSocket->state() != QAbstractSocket::ConnectedState)) {
+    newSocket = new QTcpSocket(this);
+
     // Извлекаем ip адрес и порт из соответствующих полей ввода
     ip = ui->ipLineEdit->text();
     int port = ui->portLineEdit->text().toInt();
 
-    // Создаем сокет и коннектимся к серверу
-    QTcpSocket *newSocket = new QTcpSocket(this);
-
-    newSocket->connectToHost(ip, port, QIODevice::ReadWrite, QAbstractSocket::IPv4Protocol);
+    // Коннектимся к серверу
+    newSocket->connectToHost(ip, port);
 
     // Определяем поведение, в случае получения от сокета сигнала "Подключен" - по сигналу запускаем метод connectionState()
-    connect(newSocket, &QTcpSocket::connected, [=] { this->connectedState(); });
+    connect(newSocket, SIGNAL(connected()), SLOT(connectedState()));
 
     // Определяем поведение, в случае получения от сокета сигнала "Отключен" -  по сигналу запускаем метод disconnectedState()
-    connect(newSocket, &QTcpSocket::disconnected, [=] { this->disconnectedState(); });
-    // }
+    connect(newSocket, SIGNAL(disconnected()), SLOT(disconnectedState()));
 }
 
 void CalcWidget::connectedState()
 {
-    QTcpSocket *socket = (QTcpSocket *) sender();
-
     // Готовим переменную для лога
     QString logString = getTimeStamp() + " > Connected to " + ip + "\n";
 
@@ -73,7 +69,8 @@ void CalcWidget::connectedState()
     ui->buttonEqual->setDisabled(false);
 
     // Переопределяем поведение кнопки подключения в связи с тем, что он сменила свою функцию (стала кнопкой Отключения)
-    connect(ui->buttonConnect, SIGNAL(clicked()), socket, SLOT(disconnectedState()));
+    disconnect(ui->buttonConnect, SIGNAL(clicked()), this, SLOT(startConnection()));
+    connect(ui->buttonConnect, SIGNAL(clicked()), newSocket, SLOT(deleteLater()));
 }
 
 void CalcWidget::sendData()
@@ -128,16 +125,13 @@ void CalcWidget::readyRead()
 
 void CalcWidget::disconnectedState()
 {
-    QTcpSocket *socket = (QTcpSocket *) sender();
-    socket->deleteLater();
-
     // Готовим переменную для лога
     QString logString = getTimeStamp() + " > Disconnected from " + ip + "\n";
 
     // Пишел лог в интерфейс
     ui->logTextEdit->insertPlainText(logString);
 
-    // Меняем текст и цвет текста статус-лейбла при успешном подключении
+    // Меняем текст и цвет текста статус-лейбла при успешном отключении
     ui->connectionStatus->setText("Disconnected");
     ui->connectionStatus->setStyleSheet("QLabel{color:red;}");
 
@@ -150,5 +144,6 @@ void CalcWidget::disconnectedState()
     ui->resultLineEdit->setText("");
 
     // Вновь переопределяем поведение по нажатию кнопки подключения
-    QObject::connect(ui->buttonConnect, &QPushButton::clicked, [=] { this->startConnection(); });
+    disconnect(ui->buttonConnect, SIGNAL(clicked()), newSocket, SLOT(deleteLater()));
+    connect(ui->buttonConnect, SIGNAL(clicked()), SLOT(startConnection()));
 }

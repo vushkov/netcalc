@@ -4,8 +4,6 @@
 #include "timestamp.h"
 #include <QTcpSocket>
 #include <QWidget>
-#include <QString>
-#include <QSignalMapper>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,16 +19,16 @@ public:
     CalcWidget(QWidget *parent = nullptr);
     ~CalcWidget();
 
-public slots:
+private slots:
     void startConnection();
-    void sendData();
-    void disconnectedState();
-    void readyRead();
     void connectedState();
+    void sendData();
+    void readyRead();
+    void disconnectedState();
 
 private:
     QString ip;
-    //QTcpSocket *newSocket;
+    QTcpSocket *newSocket;
 
 public:
     Ui::Widget *ui;
