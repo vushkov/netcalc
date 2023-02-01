@@ -28,7 +28,7 @@
        <item>
         <widget class="QLineEdit" name="ipLineEdit">
          <property name="text">
-          <string>172.27.10.140</string>
+          <string>127.0.0.1</string>
          </property>
         </widget>
        </item>

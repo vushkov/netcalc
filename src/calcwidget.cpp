@@ -35,6 +35,9 @@ void CalcWidget::startConnection()
     // Создаем сокет
     QTcpSocket *newSocket = new QTcpSocket(this);
 
+    // Создаем для этого сокета внутренний буфер
+    QBuffer *buffer = new QBuffer(newSocket);
+
     // Извлекаем ip адрес и порт из соответствующих полей ввода
     QString ipLE = ui->ipLineEdit->text();
     int port = ui->portLineEdit->text().toInt();
@@ -48,17 +51,17 @@ void CalcWidget::startConnection()
     // Определяем поведение, в случае получения от сокета сигнала "Отключен" -  по сигналу запускаем метод disconnectedState()
     connect(newSocket, SIGNAL(disconnected()), SLOT(disconnectedState()));
 
-    // Определяем поведение кнопки для отправки данных
-    connect(ui->buttonEqual, &QPushButton::clicked, [=] { this->sendData(newSocket); });
+    // Определяем поведение, в случае, если поступили данные
+    connect(newSocket, &QTcpSocket::readyRead, [=] { this->readyReadSlot(newSocket, buffer); });
 }
 
 void CalcWidget::connectedState()
 {
     // Получаем сокет с использованием отправителя сигнала
-    QTcpSocket *newSocket = (QTcpSocket *) sender();
+    QTcpSocket *socket = (QTcpSocket *) sender();
 
     // Получаем ip адрес сервера
-    QString ip = newSocket->peerName();
+    QString ip = socket->peerName();
 
     // Готовим переменную для лога
     QString logString = getTimeStamp() + " > Connected to " + ip + "\n";
@@ -79,15 +82,18 @@ void CalcWidget::connectedState()
 
     // Переопределяем поведение кнопки подключения в связи с тем, что он сменила свою функцию (стала кнопкой Отключения)
     disconnect(ui->buttonConnect, SIGNAL(clicked()), this, SLOT(startConnection()));
-    connect(ui->buttonConnect, SIGNAL(clicked()), newSocket, SLOT(deleteLater()));
+    connect(ui->buttonConnect, SIGNAL(clicked()), socket, SLOT(deleteLater()));
+
+    // Определяем поведение кнопки для отправки данных
+    connect(ui->buttonEqual, &QPushButton::clicked, [=] { this->sendData(socket); });
 }
 
-void CalcWidget::sendData(QTcpSocket *newSocket)
+void CalcWidget::sendData(QTcpSocket *socket)
 {
     // Если поле ввода пустое, то вообще ничего не делаем
     if (ui->resultLineEdit->text() != "") {
         // Если сокет существует и статус сокета "Подключен", то отправляем это выражение на сервер
-        if (newSocket && newSocket->state() == QAbstractSocket::ConnectedState) {
+        if (socket && socket->state() == QAbstractSocket::ConnectedState) {
             // Получаем введенное пользователем выражение
             QString data = ui->resultLineEdit->text();
 
@@ -95,47 +101,76 @@ void CalcWidget::sendData(QTcpSocket *newSocket)
             QByteArray byteArrayData = data.toUtf8().append('\n');
 
             // Записываем выражение в сокет
-            newSocket->write(byteArrayData);
+            socket->write(byteArrayData);
 
             // Пишем в поле лога какое выражение было отправлено на сервер
             ui->logTextEdit->insertPlainText(getTimeStamp() + " > Sent data: " + data + "\n");
 
         } else {
             // Иначе пишем в поле лога ошибку
-            ui->logTextEdit->insertPlainText(getTimeStamp() + " > Connection error: " + newSocket->errorString() + "\n");
+            ui->logTextEdit->insertPlainText(getTimeStamp() + " > Connection error: " + socket->errorString() + "\n");
         }
-
-        // Определяем поведение при получения от сокета сигнала "готов к чтению" - запускаем соответствующий метод
-        connect(newSocket, SIGNAL(readyRead()), SLOT(readyReadSlot()));
     }
 }
 
-void CalcWidget::readyReadSlot()
+void CalcWidget::readyReadSlot(QTcpSocket *socket, QBuffer *buffer)
 {
-    // Получаем сокет с использованием отправителя сигнала
-    QTcpSocket *socket = (QTcpSocket *) sender();
+    // Вводим массив байт, в котором будет содержаться последние полученные от сервера данные
+    QByteArray curRecievedData = socket->readAll();
 
-    // Вычитываем из сокета данные, полученные от сервера
-    QString recievedData = socket->readAll();
+    // Получаем ip адрес сервера
+    QString ip = socket->peerName();
 
-    // Делаем проверку на пустые данные
-    if (recievedData != "") {
+    // Открываем буфер, если он не открыт
+    if (!buffer->isOpen()) {
+        buffer->open(QBuffer::ReadWrite);
+    }
+
+    // По символу \n разделяем исходный данные
+    QList<QByteArray> curRecievedDataSplit = curRecievedData.split('\n');
+
+    // Обрабатываем этот список по циклу
+    // Размер списка должен быть больше 1, так как последний элемент будет без символа \n значит его сохраняем только в промежуточный буфер
+    while (curRecievedDataSplit.size() > 1) {
+        // Если \n стоит первым, значит данные в промежуточном буфере - уже полные, их можно отправлять сразу в сокет
+        if (curRecievedDataSplit[0] != "") {
+            // Иначе пишем в промежуточный буфер
+            buffer->write(curRecievedDataSplit[0]);
+        }
+
+        // Получаем полные данные из промежуточного буфера
+        QByteArray allReceivedData = buffer->buffer();
+
         // Устанавливаем полученный результат в соответствующее поле
-        ui->resultLineEdit->setText(recievedData);
+        ui->resultLineEdit->setText(allReceivedData);
 
         // Пишем лог
-        QString logString = getTimeStamp() + " > Recieved result: " + recievedData + "\n";
+        QString logString = getTimeStamp() + " > Recieved result: " + allReceivedData + "\n";
         ui->logTextEdit->insertPlainText(logString);
+
+        // Чистим буфер
+        buffer->buffer().clear();
+
+        // Устанавливаем позицию в 0
+        buffer->seek(0);
+
+        // Удаляем первый элемент списка
+        curRecievedDataSplit.removeFirst();
+    }
+
+    // Пишем данные в промежуточный буфер, если они не пустые. Если пустые, то значит символ \n стоял самым последним и данные перед ним уже отправлены в сокет
+    if (curRecievedDataSplit[0] != "") {
+        buffer->write(curRecievedDataSplit[0]);
     }
 }
 
 void CalcWidget::disconnectedState()
 {
     // Получаем сокет с использованием отправителя сигнала
-    QTcpSocket *newSocket = (QTcpSocket *) sender();
+    QTcpSocket *socket = (QTcpSocket *) sender();
 
     // Получаем ip адрес сервера
-    QString ip = newSocket->peerName();
+    QString ip = socket->peerName();
 
     // Готовим переменную для лога
     QString logString = getTimeStamp() + " > Disconnected from " + ip + "\n";
@@ -156,6 +191,6 @@ void CalcWidget::disconnectedState()
     ui->resultLineEdit->setText("");
 
     // Вновь переопределяем поведение по нажатию кнопки подключения
-    disconnect(ui->buttonConnect, SIGNAL(clicked()), newSocket, SLOT(deleteLater()));
+    disconnect(ui->buttonConnect, SIGNAL(clicked()), socket, SLOT(deleteLater()));
     connect(ui->buttonConnect, SIGNAL(clicked()), SLOT(startConnection()));
 }
