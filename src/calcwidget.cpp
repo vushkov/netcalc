@@ -23,7 +23,6 @@ CalcWidget::CalcWidget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     // Определяем поведение остальных кнопок
     connect(ui->buttonConnect, SIGNAL(clicked()), SLOT(startConnection()));
     connect(ui->buttonClear, SIGNAL(clicked()), ui->resultLineEdit, SLOT(clear()));
-    connect(ui->buttonEqual, SIGNAL(clicked()), SLOT(sendData()));
 }
 
 CalcWidget::~CalcWidget()
@@ -48,6 +47,9 @@ void CalcWidget::startConnection()
 
     // Определяем поведение, в случае получения от сокета сигнала "Отключен" -  по сигналу запускаем метод disconnectedState()
     connect(newSocket, SIGNAL(disconnected()), SLOT(disconnectedState()));
+
+    // Определяем поведение кнопки для отправки данных
+    connect(ui->buttonEqual, &QPushButton::clicked, [=] { this->sendData(newSocket); });
 }
 
 void CalcWidget::connectedState()
@@ -80,16 +82,12 @@ void CalcWidget::connectedState()
     connect(ui->buttonConnect, SIGNAL(clicked()), newSocket, SLOT(deleteLater()));
 }
 
-void CalcWidget::sendData()
+void CalcWidget::sendData(QTcpSocket *newSocket)
 {
-    ui->logTextEdit->setText("");
-
-    QTcpSocket *socket = (QTcpSocket *) sender();
-
     // Если поле ввода пустое, то вообще ничего не делаем
     if (ui->resultLineEdit->text() != "") {
         // Если сокет существует и статус сокета "Подключен", то отправляем это выражение на сервер
-        if (socket && socket->state() == QAbstractSocket::ConnectedState) {
+        if (newSocket && newSocket->state() == QAbstractSocket::ConnectedState) {
             // Получаем введенное пользователем выражение
             QString data = ui->resultLineEdit->text();
 
@@ -97,23 +95,24 @@ void CalcWidget::sendData()
             QByteArray byteArrayData = data.toUtf8().append('\n');
 
             // Записываем выражение в сокет
-            socket->write(byteArrayData);
+            newSocket->write(byteArrayData);
 
             // Пишем в поле лога какое выражение было отправлено на сервер
             ui->logTextEdit->insertPlainText(getTimeStamp() + " > Sent data: " + data + "\n");
 
         } else {
             // Иначе пишем в поле лога ошибку
-            ui->logTextEdit->insertPlainText(getTimeStamp() + " > Connection error: " + socket->errorString() + "\n");
+            ui->logTextEdit->insertPlainText(getTimeStamp() + " > Connection error: " + newSocket->errorString() + "\n");
         }
 
         // Определяем поведение при получения от сокета сигнала "готов к чтению" - запускаем соответствующий метод
-        QObject::connect(socket, &QTcpSocket::readyRead, [=] { this->readyRead(); });
+        connect(newSocket, SIGNAL(readyRead()), SLOT(readyReadSlot()));
     }
 }
 
-void CalcWidget::readyRead()
+void CalcWidget::readyReadSlot()
 {
+    // Получаем сокет с использованием отправителя сигнала
     QTcpSocket *socket = (QTcpSocket *) sender();
 
     // Вычитываем из сокета данные, полученные от сервера

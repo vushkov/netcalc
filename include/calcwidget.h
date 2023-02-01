@@ -22,8 +22,8 @@ public:
 private slots:
     void startConnection();
     void connectedState();
-    void sendData();
-    void readyRead();
+    void sendData(QTcpSocket *newSocket);
+    void readyReadSlot();
     void disconnectedState();
 
 public:
