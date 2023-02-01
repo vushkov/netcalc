@@ -16,14 +16,14 @@ CalcWidget::CalcWidget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
         // Исключаем кнопку "=" и кнопку "С"
         if (pButton->text() != 'C' && pButton->text() != '=') {
-            connect(pButton, &QPushButton::clicked, [=] { ui->resultLineEdit->insert(QString(pButton->text())); });
+            connect(pButton, &QPushButton::clicked, [=]() { ui->resultLineEdit->insert(QString(pButton->text())); });
         }
     }
 
     // Определяем поведение остальных кнопок
-    connect(ui->buttonConnect, SIGNAL(clicked()), this, SLOT(startConnection()));
+    connect(ui->buttonConnect, SIGNAL(clicked()), SLOT(startConnection()));
     connect(ui->buttonClear, SIGNAL(clicked()), ui->resultLineEdit, SLOT(clear()));
-    connect(ui->buttonEqual, SIGNAL(clicked()), this, SLOT(sendData()));
+    connect(ui->buttonEqual, SIGNAL(clicked()), SLOT(sendData()));
 }
 
 CalcWidget::~CalcWidget()
@@ -33,14 +33,15 @@ CalcWidget::~CalcWidget()
 
 void CalcWidget::startConnection()
 {
-    newSocket = new QTcpSocket(this);
+    // Создаем сокет
+    QTcpSocket *newSocket = new QTcpSocket(this);
 
     // Извлекаем ip адрес и порт из соответствующих полей ввода
-    ip = ui->ipLineEdit->text();
+    QString ipLE = ui->ipLineEdit->text();
     int port = ui->portLineEdit->text().toInt();
 
     // Коннектимся к серверу
-    newSocket->connectToHost(ip, port);
+    newSocket->connectToHost(ipLE, port);
 
     // Определяем поведение, в случае получения от сокета сигнала "Подключен" - по сигналу запускаем метод connectionState()
     connect(newSocket, SIGNAL(connected()), SLOT(connectedState()));
@@ -51,6 +52,12 @@ void CalcWidget::startConnection()
 
 void CalcWidget::connectedState()
 {
+    // Получаем сокет с использованием отправителя сигнала
+    QTcpSocket *newSocket = (QTcpSocket *) sender();
+
+    // Получаем ip адрес сервера
+    QString ip = newSocket->peerName();
+
     // Готовим переменную для лога
     QString logString = getTimeStamp() + " > Connected to " + ip + "\n";
 
@@ -125,6 +132,12 @@ void CalcWidget::readyRead()
 
 void CalcWidget::disconnectedState()
 {
+    // Получаем сокет с использованием отправителя сигнала
+    QTcpSocket *newSocket = (QTcpSocket *) sender();
+
+    // Получаем ip адрес сервера
+    QString ip = newSocket->peerName();
+
     // Готовим переменную для лога
     QString logString = getTimeStamp() + " > Disconnected from " + ip + "\n";
 

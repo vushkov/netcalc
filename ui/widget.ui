@@ -53,6 +53,9 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
@@ -175,7 +178,11 @@
       </layout>
      </item>
      <item>
-      <widget class="QTextEdit" name="logTextEdit"/>
+      <widget class="QTextEdit" name="logTextEdit">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

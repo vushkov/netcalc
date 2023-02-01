@@ -26,10 +26,6 @@ private slots:
     void readyRead();
     void disconnectedState();
 
-private:
-    QString ip;
-    QTcpSocket *newSocket;
-
 public:
     Ui::Widget *ui;
 };
