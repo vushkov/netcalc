@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Widget</string>
+   <string>Network calculator</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

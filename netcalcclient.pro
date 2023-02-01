@@ -21,7 +21,7 @@ HEADERS += \
     include/timestamp.h \
 
 FORMS += \
-    ui/widget.ui \
+    ui/calcwidget.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

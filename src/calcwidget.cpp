@@ -53,6 +53,9 @@ void CalcWidget::startConnection()
 
     // Определяем поведение, в случае, если поступили данные
     connect(newSocket, &QTcpSocket::readyRead, [=] { this->readyReadSlot(newSocket, buffer); });
+
+    // Определяем поведение кнопки для отправки данных
+    connect(ui->buttonEqual, &QPushButton::clicked, [=] { this->sendData(newSocket); });
 }
 
 void CalcWidget::connectedState()
@@ -84,8 +87,6 @@ void CalcWidget::connectedState()
     disconnect(ui->buttonConnect, SIGNAL(clicked()), this, SLOT(startConnection()));
     connect(ui->buttonConnect, SIGNAL(clicked()), socket, SLOT(deleteLater()));
 
-    // Определяем поведение кнопки для отправки данных
-    connect(ui->buttonEqual, &QPushButton::clicked, [=] { this->sendData(socket); });
 }
 
 void CalcWidget::sendData(QTcpSocket *socket)
